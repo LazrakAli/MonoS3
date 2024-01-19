@@ -1,0 +1,54 @@
+lazrak ali 28605235
+
+EXERCICE1
+Question 1
+cat hosts|sed -En "/localhost$/s/^([0-9]{1,3}(\.[0-9]{1,3}){3}).*/\1/p"
+
+Question 2
+lpoptions -l|sed -En "/\*/s/.*(\*[^ ]*).*/\1/p" 
+
+Question 3
+ip addr |sed -En "/eth[0-9]\.*[0-9]*$/s/.* ([0-9]{1,3}(\.[0-9]{1,}){3})\/.*(eth[0-9]\.*[0-9]*$)/\3 \1  /p"
+
+Question 4
+cat group |sed -En "/$(whoami)/s/([^:]*):.*/\1/p"
+
+Question 5
+df |sed -En "s/^[a-zA-Z0-9/]* *[0-9]* *[0-9]* *([0-9]*.*)/\1/p" | sort -nr |sed -En "1s/^.*(\/.*)/ \1 /p"
+
+Question 6
+ cat services | sed -En "/\t([0-9]{1,3})\/[a-z]+/p" |sed -En "s/([a-zA-Z-]+) *\t?.*#(.*)/\1  : \2   /p"
+
+
+EXERCICE 2
+Question1
+if ! [ $# -eq 1 ];then 
+	echo  argument manquant
+	exit 1
+fi
+
+if ! [ -f $1  ];then 
+	echo <usage>:file
+	exit 1
+fi
+
+cat $1 |tr ',' '\n'|sed -En "s/\"numbikesavailable\": ([0-9]+)/\1/p" >tmp
+
+sum=0
+while read ligne ; do
+	sum=$((sum+ligne))
+done<tmp
+
+rm tmp
+
+echo "D'aprés l'exercice Paris compte $sum vélibs. "
+
+
+Question 2
+wget -q https://opendata.paris.fr/explore/dataset/arbresremarquablesparis/download/?format=csv
+
+echo -n "L'arrondissement de Paris possédant le plus d'arbres remarquables est : "
+echo $(cat index.html\?format\=csv  |sed -En 's/([^;]*;){7}([^;]*);.*/\2/p' |sort |uniq -c |sort -nr|sed -En "1s/ *[0-9]* (.*)/\1/p")
+
+rm index.html\?format\=csv 
+

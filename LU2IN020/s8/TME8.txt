@@ -1,0 +1,187 @@
+! /bin/bash
+Lazrak Ali 28605235
+
+Le but de cette huitième semaine est d’étudier la parallélisation
+de commandes et la synchronisation à l’aide de la commande wait.
+Nous y introduirons aussi la notion d’adoption et de processus
+zombie.
+
+ps    : affiche des informations sur les processus présents dans
+        le système.
+--pid : permet de cibler un processus en particulier
+o     : option de formatage
+        permet la sélection des informations
+
+
+
+======== EXERCICE 1 ========
+--- Q1 ---------------------
+Cours :
+Lecture des state (etats)
+D Sommeil ininterrompu (généralement IO/ES)
+R En cours d'exécution ou exécutable (sur la file d'attente d'exécution)
+S Sommeil interruptible (en attente de la fin d'un événement)
+T Arrêté, soit par un signal de commande de tâche, soit parce qu'il est tracé.
+W Pagination (non valide depuis le noyau 2.6.xx)
+X mort (ne devrait jamais être vu)
+Z Defun ("zombie") Processus , terminé mais non récupéré par son parent.
+
+< haute priorité (pas agréable pour les autres utilisateurs)
+N basse priorité (agréable pour les autres utilisateurs)
+L a des pages verrouillées en mémoire (pour les E / S en temps réel et personnalisées)
+s est un animateur de session
+l est multi-thread (en utilisant CLONE_THREAD, comme le font les pthreads NPTL)
++ est dans le groupe de processus de premier plan
+
+> ps o pid,ppid,state
+PID  PPID STAT
+55243 55242 S
+
+> sleep 30 &
+> ps o pid,ppid,state --ppid $!
+PID  PPID STAT
+8566 55243 SN
+
+Le bash execute sleep 30
+Sleep 30 à lancer un processus à partir du shell courant (fork execX())
+Le bash courant est bloque
+Fin du sleep 30
+Le bash reste dans l'attente d'une nouvelle commande
+
+--- Q2 ---------------------
+chmod u+x adoption_processus.sh
+chmod u+x processus_adopte.sh
+
+./adoption_processus.sh
+
+Remarque: il est possible de jouer sur la duree de la commande Sleep
+dans adoption_processus et processus_adopte pour que le processus_adopté
+vivent aprés la mot de son père
+
+--- Q3 ---------------------
+observation d'un processus zombie
+wget http://julien.sopena.fr/myZombie.tgz
+tar xzf myZombie.tgz
+rm -rf myZombie.tgz
+
+determiner le pid du fichier fournie
+./myZombie &
+
+./processMonitor $( ./myZombie & )
+
+--- Q4 ---------------------
+ ps o pid,ppid,state --pid <UN_PID>
+ si <UN_PID> est un zombie le resultat affiché sera :
+ PID      PPID     ETAT
+ UN_PID   UN_PPID   Z
+
+Donc dès que l'état du processus passera de S a Z un zombie sera naîtera
+fonction recupérant l'état d'un processus
+function etat(){
+  echo $1 | tail -n 1 |rev | cut -d " " -f1 |rev
+}
+for t in {1..60}
+do
+    ps o pid,ppid,state --pid $1 >> INFORMATION
+    if [ ! $(etat $INFORMATION)=="Z" ];then
+      echo " Warning : un zombie est apparu "
+      rm -f INFORMATION
+      exit 1
+    fi
+    sleep 1
+done
+
+
+======== EXERCICE 2 ========
+--- Q1 ---------------------
+wget http://julien.sopena.fr/dico.txt
+
+--- Q2 ---------------------
+chmod u+x dictionnaire.sh
+./dictionnaire.sh
+
+description: -parcourt le fichier dico.txt mot par mot
+             -cree le fichier correspondant à la première lettre du mot s'il n'existe pas
+                puis rajoute le mot au nouveau fichier creer
+             -sinon rajoute le mot au fichier associer a sa première lettre
+A noter : le traitement du fichier dico.tx est tres long ~1H30
+
+
+======== EXERCICE 3 ========
+--- Q1 ---------------------
+chmod u+x longest.sh
+./longest.sh <UN_FICHIER>
+
+--- Q2 ---------------------
+chmod u+x paraLongest.sh
+./paraLongest <UN_REP>
+
+--- Q3 ---------------------
+time ./longest.sh dico.tx
+  7,28s user
+  0,88s system
+  99% cpu
+  8,219 total
+
+time ./paraLongest.sh dictionnaire
+  6,90s user
+  1,08s system
+  95% cpu
+  8,334 total
+
+ajout de & et wait dans ./paraLongest.sh -> ajout du parallélisme
+  ./paraLongest.sh dictionnaire
+    11.78s user
+    1.60s system
+    652% cpu
+    2.051 total
+
+--- Q4 ---------------------
+time ./longest.sh dico.txt
+user+system=8,16s
+real = 8,219
+
+time ./paraLongest.sh dictionnaire
+user+system=7,98
+real=8,334
+
+time ./paraLongest.sh dictionnaire
+user+system=13,38
+real=2,051
+
+
+user : - Temps CPU réel utilisé pour exécuter le processus.
+       - Le temps que le CPU a passé en mode-utilisateur (en dehors du noyau-kernel).
+       - Les autres processus et le temps que le processus passe bloqué ne sont pas pris en compte.
+
+system : - Temps que le CPU passé dans le noyau au sein du processus.
+
+real : - Le réel est l'heure de l'horloge murale - l'heure du début à la fin de l'appel.
+       - Temps écoulé, y compris entre les tranches de temps utilisées par d'autres processus
+            et le temps que le processus a passé bloqué (par exemple, s'il attend la fin des E / S).
+
+User + Sys = combien de temps CPU réel votre processus a utilisé
++ :
+  Notez que cela concerne tous les processeurs, donc si le processus a plusieurs threads
+  (et que ce processus s'exécute sur un ordinateur avec plus d'un processeur),
+  il pourrait potentiellement dépasser l'heure de l'horloge murale signalée par
+  Real (ce qui se produit généralement).
+
+
+
+--- Q5 ---------------------
+calculer le pourcentage de parallélisme
+sys+use * 100 /real = pourcentage de parallélisme
+
+./longest.sh dico.txt
+pourcentage de parallélisme =  99% cpu
+
+./paraLongest.sh dictionnaire (sans parallélisme)
+pourcentage de parallélisme = 95% cpu
+
+./paraLongest.sh dictionnaire (avec parallélisme)
+pourcentage de parallélisme = 652% cpu
+
+Définition CPU : (Central Processing Unit) -> coeur de calcule
+  Un processeur est un composant présent dans de nombreux dispositifs électroniques
+  qui exécute les instructions machine des programmes informatiques.

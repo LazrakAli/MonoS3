@@ -1,0 +1,17 @@
+Exercice 1:
+	Q1/ on reste au niveau de la racine
+	Q2/ on nous dirige vers notre home
+	Q3/ cd /
+	
+	Q5/ ls ./toto/titi cherche dans le repertoire courant le repertoire titi dans toto et affiche
+	    ses fichier
+	    
+	    recherche apartir de notre home un repertoire titi dans un repertoire toto et affiche ses fichier
+	  
+          recherche dans le repertoire pere du repertoire courant un repertoire titi situé dans un repertoire toto et affiche ses fichier
+	
+Exercice 2:
+
+	Q1/ ajouter l'option -p pour cree les parents non existant dans le repertoire
+		mkdir -p ./tmp/rep1/rep2
+	Q2/ 

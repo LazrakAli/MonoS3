@@ -1,0 +1,40 @@
+Problem:    
+Rows:       4
+Columns:    4
+Non-zeros:  16
+Status:     UNDEFINED
+Objective:  obj = 0 (MAXimum)
+
+   No.   Row name   St   Activity     Lower bound   Upper bound    Marginal
+------ ------------ -- ------------- ------------- ------------- -------------
+     1 e1           B              0                        1500 
+     2 e2           B              0                        2000 
+     3 e3           B              0                         100 
+     4 e4           B              0                           0 
+
+   No. Column name  St   Activity     Lower bound   Upper bound    Marginal
+------ ------------ -- ------------- ------------- ------------- -------------
+     1 x1           NL             0            10            20         < eps
+     2 x2           NL             0            10                       < eps
+     3 x3           NL             0            10                       < eps
+     4 x4           NL             0            10                       < eps
+
+Karush-Kuhn-Tucker optimality conditions:
+
+KKT.PE: max.abs.err = 0.00e+00 on row 0
+        max.rel.err = 0.00e+00 on row 0
+        High quality
+
+KKT.PB: max.abs.err = 1.00e+01 on column 1
+        max.rel.err = 9.09e-01 on column 1
+        PRIMAL SOLUTION IS INFEASIBLE
+
+KKT.DE: max.abs.err = 2.40e+02 on column 4
+        max.rel.err = 9.96e-01 on column 4
+        DUAL SOLUTION IS WRONG
+
+KKT.DB: max.abs.err = 0.00e+00 on row 0
+        max.rel.err = 0.00e+00 on row 0
+        High quality
+
+End of output

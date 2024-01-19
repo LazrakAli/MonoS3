@@ -1,0 +1,18 @@
+TD 7
+
+Question 1)
+
+cat velib-disponibilite-en-temps-reel.json | tr ',' '\n' |
+grep -E "numbikesavailable" | cut -d ' ' -f 3 >valeur.txt
+
+x=0
+for line in $(cat valeur.txt);
+do x=$(($line+$x));
+done
+echo $x
+
+Réponse: 15763
+
+Question 2)
+
+

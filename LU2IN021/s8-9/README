@@ -1,0 +1,244 @@
+Lazrak Ali 28605235
+
+
+Exercice 1:
+
+Exercice 2:
+    Question 1:
+    from __future__ import division
+    import numpy as np
+    import matplotlib.pyplot as plt
+    import math
+    import statistics
+    from statistics import mean
+
+    def B(x, k, i, u):
+    if k == 0:
+        return 1.0 if u[i] <= x < u[i+1] else 0.0
+    if u[i+k] == u[i]:
+        c1 = 0.0
+    else:
+        c1 = (x - u[i])/(u[i+k] - u[i]) * B(x, k-1, i, u)
+    if u[i+k+1] == u[i+1]:
+        c2 = 0.0
+    else:
+        c2 = (u[i+k+1] - x)/(u[i+k+1] - u[i+1]) * B(x, k-1, i+1, u)
+    return c1 + c2
+
+    def bcurve(x,u,k,c):
+        assert(len(c) <= len(u))
+        n = len(c)
+        somme = 0
+        for i in range(n):
+            somme += c[i]*B(x,i,k,u)
+        return somme
+    
+    x=np.linspace(0,5,100)
+    u=[0,0,0,0,1,2,3,4,5,5,5,5]
+    k=3
+    for i in range(5):
+        y= [B(x,i,k,u) for x in np.linspace(0,5,100)]
+        plt.plot(x,y)
+    plt.show()
+
+    Question 2:
+
+    x=np.linspace(0,5,100)
+    u=[0,0,0,0,1,2,3,4,5,5,5]
+    k=2
+    for i in range(5):
+        y= [B(x,i,k,u) for x in np.linspace(0,5,100)]
+        plt.plot(x,y)
+    plt.show()
+
+    Question 3:
+    # Evalue la I-spline d'ordre k en x 
+    # direcuemenu en foncuion des Bspline pluuou que comme l'inu de la m-spline de degré k)    
+    def ispline(x, k, i, u):
+        l=0
+        while u[l]<=x :
+            l=l+1
+        j=l-1  
+        if j<i+1: return 0.
+        if j-k>i: return 1.
+        v = 0.
+        for m in range(i+1,j+1):
+            v += B(x, k, m, u)
+        return v
+        def icurve(x,u,k,c):
+        s = 0
+        for i in range(len(c)):
+            s += c[i] * ispline(x,i,k,u)
+        return s
+
+    x=np.linspace(0,5,100)
+    u=[0,0,0,0,1,2,3,4,5,5,5,5]
+    c=[0,0,0.3,0.3,0.4]
+    k=3
+    for i in range(5):
+        y= [I(x,i,k,u) for x in np.linspace(0,5,100)]
+        plt.plot(x,y)
+    plt.show()
+
+    #Exercice 3
+    print("Exercice 3")
+    print("1. Lissage polygone")
+    #1
+    #2
+    print("2. Modification point de controle")
+
+    x=[1,2,3,4,5,6,7,8,9]
+    y=[8,12,9,6,15,10,12,7,10]
+
+    x1=[1,2,3,4,5,6,7,8,9]
+    y1=[8,12,9,8,15,10,12,7,10]
+
+    x2=[1,2,3,4,5,6,7,8,9]
+    y2=[8,12,9,10,15,10,12,7,10]
+
+    k=3
+
+    u=[j for j in range(-k,len(x)+k+1)]
+
+
+    xpline=[bcurve(i,u,k,x) for i in np.arange(0,9,0.1)]
+    yplne=[bcurve(i,u,k,y) for i in np.arange(0,9,0.1)]
+
+    xspline=[bcurve(i,u,k,x1) for i in np.arange(0,9,0.1)]
+    ysplne=[bcurve(i,u,k,y1) for i in np.arange(0,9,0.1)]
+
+    xspline1=[bcurve(i,u,k,x2) for i in np.arange(0,9,0.1)]
+    ysplne1=[bcurve(i,u,k,y2) for i in np.arange(0,9,0.1)]
+    
+    plt.plot(xpline,yplne,'b') #affichage de la courbe lissé en bleu 
+    plt.plot(xspline,ysplne,'r')#affichage nouvelle courbe (4,6)
+    plt.plot(xspline1,ysplne1,'g')#affichage nouvelle courbe(4,8)
+
+    plt.show()
+
+
+
+Exercice 4:
+
+xi=[18,5,4,6,19,10,19,12,20,9,9,2,14,7,15,4,8,16,4,1]
+yi=[14,9,8,8,17,15,19,14,18,15,14,10,7,10,11,8,13,8,8,10]
+k= 3
+
+#On calcule alpha_i
+    #On genere des fichiers .lp qui on pour objectif de minimiser la somme des uj+vj. Avec pour contrainte l'egalite
+yj = uj - vj + somme{i,m-k}(alpha_i * Bspline{i,k}(xj))
+
+#On resoud le programme lineaire pour avoir le coef alpha_i
+#On genere le fichier .lp avec 
+
+f = open('pas5.lp','w')
+f.write("Minimize\n")
+
+s = "\t" 
+for i in range(20):
+    s+='u{1} + v{1} + '.format(i,i)
+
+f.write(s) 
+f.write("\nSubject To")
+
+s = "" 
+for i in range(20):
+    s='\tc{0}: u{1} - v{1} + '.format(i+1,i)
+    B_xi = [ (B(xi[i],j,k,u), "a"+str(j)) for j in range(8)]
+    for (x,a) in B_xi:
+        if (x!=0):
+            s+='{0} {1} + '.format(x,a)
+    s=s[0:-2]
+    s+='= {0}'.format(yi[i])
+    f.write(s + '\n') 
+f.close()  
+
+
+#Une fois les m-k alpha_i on peut tracer la courbe a l'aide de bcurve;
+#Noued de pas 5:
+    #Ce qui differe entre les 2 regressions sont les aplha_i et les noeuds (car on chande de pas)
+
+u= range(-10,41,5) 
+
+alpha= [16.3545, 2.2875, 22.6696, -2.96578, 28.8215, -4.32022, 0]
+xPrint=[i for i in np.arange(0,max(xi),0.1)]
+yPrint=[bcurve(i,u,k,alpha) for i in np.arange(0,max(xi),0.1)]
+
+print(distanceMoyenne(listTuplePts(xi,yi), listTuplePts(xPrint,yPrint)))#calcule et print distance moyenne de points et de la courbe
+
+plt.plot(xi,yi,'db')
+plt.plot(xPrint,yPrint,'r')
+plt.show()
+
+#on passe de 7 a 8 alpha_i lorsque change le pas a 3 nbAlpha_i =m-k
+#Noeud de pas 3
+u=range(-6,31,3)
+alpha=[ 11.3748, 9.27877, 5.4163, 17.0977, 16.193, 2.13048,15.7862, 21.1473]
+xPrint=[i for i in np.arange(0,max(xi),0.1)]
+yPrint=[bcurve(i,u,k,alpha) for i in np.arange(0,max(xi),0.1)]
+
+print(distanceMoyenne(listTuplePts(xi,yi), listTuplePts(xPrint,yPrint))) #calcule et print distance moyenne de points et de la courbe
+
+plt.plot(xi,yi,'db')
+plt.plot(xPrint, yPrint,'r')
+plt.show()
+
+#on trouve comme distance moyenne entre les points et la courbe:
+    #pas 5: 8.92e-06
+    #pas 3: 0.01296108232973452
+
+    Exercice 5:
+    Question 1:
+    #Noeud de pas 4
+    xi=[1,6,8,12,10,14,15,17,20,23,3,4,7,12,13,16,18,19,20,21]
+    yi=[14,15,14,11,14,6,7,8,6,2,12,14,13,5,7,8,7,6,5,3]
+    k=3
+    u= range(-15,41,4)
+
+    print(len(xi))
+    alpha=[0,44.3326,5.71491,16.8078,13.645,4.8132,9.10217,3.46308]
+    xspline=[i for i in np.arange(0,max(xi),0.1)]
+    yspline=[bcurve(i,u,k,alpha) for i in np.arange(0,max(xi),0.1)]
+
+    plt.plot(xi,yi,'db')
+    plt.plot(xspline,yspline,'r')
+    plt.show()
+
+    Question 2:
+
+
+
+
+    Exercice 6:
+    
+        #Tracage de la spirale
+    k=3 # Spline cubique
+
+    x_points_figure=[18,11,4,10,16,10,7,11,14,12,10] # on prend la liste des X de la spirale
+    y_points_figure=[4,2,8,16,8,6,10,14,10,8,10] # on prend la liste des Y de la spirale
+
+    x_points_figure1=[18,18,11,4,10,16,10,7,11,14,12,10,10] #on ajoute les k points 
+    y_points_figure1=[4,4,2,8,16,8,6,10,14,10,8,10,10] #on ajoute les k points
+    u=[j for j in range(-k,len(x_points_figure)+k+1)]# on crée les noeuds 
+
+    C = np.array([[0] * 13 for x in range(13)]) # on crée la matrice B de taille m+k
+                
+    for i in range(len(C)): #on initialise la matrice B
+        for j in range(len(C[i])):
+            if i==j:
+                C[i][j]=4
+            elif i-j<2 and i-j>-2:
+                C[i][j] =1
+    C=C.dot(0.166666667) # On multiplie la matrice B par 1/6 
+    B_inv=np.linalg.inv(C) # on l'inverse 
+    Q=[[x_points_figure1[i],y_points_figure1[i]] for i in range(len(x_points_figure1))] # crée la matrice des points X et Y de la spirale
+    P=B_inv.dot(Q) #on calcule P 
+    Px=[P[x][0] for x in range(len(P))] # on prend la liste des X des points de controles 
+    Py=[P[x][1] for x in range(len(P))] # on prend la liste des Y des points de controles 
+
+    xspline=[bcurve(i,u,k,Px) for i in np.arange(0,10,0.1)] #on lisse la courbe des points de controle 
+    yspline=[bcurve(i,u,k,Py) for i in np.arange(0,10,0.1)]
+
+    plt.plot(xspline,yspline,'blue') # on affiche la courbe 
+    plt.scatter(x_points_figure,y_points_figure,c='blue') # on affiche les points 
+    plt.show()

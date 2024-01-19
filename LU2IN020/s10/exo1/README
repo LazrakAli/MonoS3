@@ -1,0 +1,7 @@
+Exercice 1:
+
+2/
+Si le(s) fichier(s) entré(s) en parametre n'existe pas on ecrase en cree un et on ecrite dedans premier <PID>
+Dans le cas ou le fichier existe on ecrit suivant <PID>
+
+3/

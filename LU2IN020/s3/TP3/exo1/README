@@ -1,0 +1,15 @@
+
+Exercice 1:
+Q:2) Il prend en argument un entier puis lit sur l'entre standart les char pour les code en fonction de l'entier entré.
+
+Q:4) 
+for i in {1..26};do
+    echo $i 
+    ./cesar $i < ./fenetre_sur_coquillage/part1
+done
+#Le resultat donne 3;
+
+Q:5)
+for i in {1..9};do
+    ./cesar 16 < ./fenetre_sur_coquillage/part$i
+done >>dechifrage

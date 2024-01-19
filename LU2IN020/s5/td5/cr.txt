@@ -1,0 +1,13 @@
+hello world 
+I m Ali Lazrak son of Adil & Siham 
+born the 8 february 2001
+
+Bonjour Le Monde
+je m'appelle Ali Lazrak je suis le fils de Adil et Siham
+Né le 8 février 2001
+
+//!/bin/bash
+//!/bin/bash
+
+
+xxx yyy

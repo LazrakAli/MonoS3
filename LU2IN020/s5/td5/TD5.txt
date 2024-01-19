@@ -1,0 +1,25 @@
+Exercice 1:
+
+1) grep -En "CHAT" <fichier>
+2)grep -Ewq "TCHAT" <fichier> ; if [ $? -eq 0 ] ; then echo OK; fi
+3)grep -Ec "^.{7}$" dico_light.txt
+4)grep -Ec "^.{,7}$" dico_light.txt
+5)grep -E "^.{7}$" dico_light.txt | grep -E "(.*N.*){3}"
+6)grep -E "^.{11}$" dico_light.txt | grep -E "(.*N.*){3}" | grep -E "CHAT" 
+7)grep -E "^.{15}$" dico_light.txt
+8)Il y'a 6177 mots possible de 15 lettres
+8)grep -Ec "[AEIOUY]{2}" dico_light.txt     
+9)grep -Ec "([AEIOUY])\1" dico_light.txt
+10)grep -E "([^AEIOUY][AEIOUY]).*\1" dico_light.txt
+11)grep -E "^(.)(.)(.).\3\2\1$" dico_light.txt
+
+
+Exercice 2:
+
+1) cat cr.txt | tr " " "_"
+2)cat cr.txt | tr "àçéèêëîïôöùü" "aceeeeiioouu"
+3)cat cr.txt | tr  'a-z' 'A-Z'
+4)cat cr.txt | tr -s ' ' ','
+5) non on peut pas (possible avec sed)
+6) tr 'xy' 'yx'
+

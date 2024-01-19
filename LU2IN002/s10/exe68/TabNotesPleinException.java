@@ -1,0 +1,3 @@
+class TabNotesPleinException extends Exception{
+
+}

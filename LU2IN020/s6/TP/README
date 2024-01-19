@@ -1,0 +1,14 @@
+
+Exercice 1:
+
+1)sed -En "/localhost$/s/localhost//p" /etc/hosts
+
+2)lpoptions -l | sed -En "s/.*(\*[^ ]*).*/\1/p"
+
+3)
+
+5) ./whoInstalled.sh | cut -d: -f1 | tr "\n" " "
+
+6)df | tr -s '\t' '  '| sed -En 's/(.*) (.*) (.*%) ([/].*)$/\2 \4/p' | sort -n | sed -En 's/.* ([/].*)$/\1/; $p'
+
+7)

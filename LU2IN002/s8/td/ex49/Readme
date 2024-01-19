@@ -1,0 +1,10 @@
+Exe 49_2: (impossible) Submarine sub=new Submarine();
+
+Exe 49_4: Dans public class Merlu extends Poisson
+        a) Oui merlu peut seDeplacer()
+        b) m instanceof Submarine |-> True
+
+Exe 49_9:
+    Non ca doit implements Submarine
+    Oui
+    Non, on fait une nouvelle class Chatsub qui extends de chat et qui implements de Submarine

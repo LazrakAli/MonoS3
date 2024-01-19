@@ -1,0 +1,488 @@
+# TP 11
+## NOM Prenom: Lazrak Ali
+## Numero etudiant: 28605235
+
+### Question 1
+
+```bash
+#!/bin/bash
+# prendre_ressource.sh
+
+# verifer si le nombre de parametres est bon
+if [ $# -ne 1 ]; then
+    echo "Il faut un fichier en parametre pour prendre la ressource" 
+    exit 1
+fi
+# verfier si le fichier existe et on a le droit de le lire
+if [ ! -r $1 ]; then
+    echo "Cannot read file"
+    exit 1
+fi
+# a : nombre de ressources disponibles actuallement dans le fichier
+a=0
+if [ -s $1 ]; then
+    a=$(cat $1)
+fi
+while [[ "$a" -le 0 ]]; do
+    sleep 1
+    a=$(cat $1)
+done 
+echo $((a - 1)) > $1 # a la fin, on met a jour le fichier
+```
+
+```bash
+#!/bin/bash
+#rendre_ressource.sh
+# verifer si le nombre de parametres est bon
+if [ $# -ne 1 ]; then
+    echo "Il faut un fichier en parametre pour rendre la ressource" 
+    exit 1
+fi
+# verfier si le fichier existe et on a le droit de le lire
+if [ ! -r $1 ]; then
+    echo "Cannot read file"
+    exit 1
+fi
+# mettre a jour le fichier
+a=0 # a : nombre des ressources disponibles dans le fichier 
+if [ -s $1 ]; then
+    a=$(cat $1)
+fi
+echo $((a + 1)) > $1
+```
+
+
+### Question 2
+```bash
+#!/bin/bash
+# usager.sh
+echo "Arrivee de l'usager $$"
+source ./prendre_ressource.sh /tmp/28707365/nb_cabines
+source ./prendre_ressource.sh /tmp/28707365/nb_paniers
+source ./rendre_ressource.sh /tmp/28707365/nb_cabines
+echo "Usager $$ se baigne"
+sleep 3
+source ./prendre_ressource.sh /tmp/28707365/nb_cabines
+source ./rendre_ressource.sh /tmp/28707365/nb_paniers
+source ./rendre_ressource.sh /tmp/28707365/nb_cabines
+echo "fin de $$"
+```
+
+Le script lancement.sh prends en argument 3 valeurs: le nombre des usagers, le nombre des paniers et le nombre des cabines.
+
+```bash
+#!/bin/bash
+#lancement.sh
+if [ $# -ne 3 ]; then 
+    echo "Il faut 3 parametres"
+    echo "Usage : $0 <nb_usagers> <nb_paniers> <nb_cabines>"
+    exit 1
+fi
+echo $2 > /tmp/28707365/nb_paniers
+echo $3 > /tmp/28707365/nb_cabines
+for i in $(seq 0 $1); do
+    ./usager.sh &
+done 
+wait
+```
+
+Après plusierus lancements, on obtient l'affichage suivant:
+```
+Arrivee de l'usager 10479
+Arrivee de l'usager 10480
+Arrivee de l'usager 10482
+Arrivee de l'usager 10483
+Arrivee de l'usager 10481
+Arrivee de l'usager 10484
+Arrivee de l'usager 10486
+Arrivee de l'usager 10485
+Usager 10479 se baigne
+Usager 10480 se baigne
+Usager 10483 se baigne
+Usager 10486 se baigne
+Usager 10484 se baigne
+Usager 10482 se baigne
+Usager 10481 se baigne
+fin de 10479
+fin de 10480
+fin de 10483
+fin de 10484
+Usager 10485 se baigne
+fin de 10482
+fin de 10486
+fin de 10481
+fin de 10485
+```
+
+Dans le fichier nb_paniers: 4
+
+Dans le fichier nb_cabines: 3
+
+Ce résultat est obtenu car il y a une commutation dans la partie critique du code. Il est donc possible pour 2 utilisateurs de prendre la même ressource (par exemple une cabine), et après leur changement, ils déclarent tous les deux la cabine libre, donc nous aurons 2 cabines déclarées même si debout c'était une seule cabine. 
+
+### Question 3
+Donc, une première solution est la création de 2 verrous (paniers et cabines). Ces deux seront utilisés dans rendre_ressource.sh et prendre_ressource.sh .
+
+```bash
+#!/bin/bash
+#lancement.sh
+if [ $# -ne 3 ]; then 
+    echo "Il faut 3 parametres"
+    echo "Usage : $0 <nb_usagers> <nb_paniers> <nb_cabines>"
+    exit 1
+fi
+echo $2 > /tmp/28707365/nb_paniers
+echo $3 > /tmp/28707365/nb_cabines
+iss_synchro create cabines
+iss_synchro create paniers
+for i in $(seq 0 $1); do
+    ./usager.sh &
+done 
+wait
+
+```
+
+```bash
+#!/bin/bash
+# prendre_ressource.sh
+# verifer si le nombre de parametres est bon
+if [ $# -ne 1 ]; then
+    echo "Il faut un fichier en parametre pour prendre la ressource" 
+    exit 1
+fi
+# verfier si le fichier existe et on a le droit de le lire
+if [ ! -r $1 ]; then
+    echo "Cannot read file"
+    exit 1
+fi
+
+verrou=$(echo $1 | cut -d "/" -f4 | cut -d "_" -f2)
+iss_synchro lock $verrou
+
+# a : nombre de ressources disponibles actuallement dans le fichier
+a=0
+if [ -s $1 ]; then
+    a=$(cat $1)
+fi
+while [[ "$a" -le 0 ]]; do
+    sleep 1
+    a=$(cat $1)
+done 
+echo $((a - 1)) > $1 # a la fin, on met a jour le fichier
+
+
+iss_synchro unlock $verrou
+```
+
+```bash
+#!/bin/bash
+#rendre_ressource.sh
+# verifer si le nombre de parametres est bon
+if [ $# -ne 1 ]; then
+    echo "Il faut un fichier en parametre pour rendre la ressource" 
+    exit 1
+fi
+# verfier si le fichier existe et on a le droit de le lire
+if [ ! -r $1 ]; then
+    echo "Cannot read file"
+    exit 1
+fi
+verrou=$(echo $1 | cut -d "/" -f4 | cut -d "_" -f2)
+iss_synchro lock $verrou
+
+a=0 # a : nombre des ressources disponibles dans le fichier 
+if [ -s $1 ]; then
+    a=$(cat $1)
+fi
+echo $((a + 1)) > $1
+
+iss_synchro unlock $verrou
+```
+
+```bash
+#!/bin/bash
+# usager.sh
+echo "Arrivee de l'usager $$"
+source ./prendre_ressource.sh /tmp/28707365/nb_cabines 
+sleep 5
+source ./prendre_ressource.sh /tmp/28707365/nb_paniers
+source ./rendre_ressource.sh /tmp/28707365/nb_cabines
+echo "Usager $$ se baigne"
+sleep 3
+source ./prendre_ressource.sh /tmp/28707365/nb_cabines
+source ./rendre_ressource.sh /tmp/28707365/nb_paniers
+source ./rendre_ressource.sh /tmp/28707365/nb_cabines
+echo "fin de $$"
+```
+
+On crée aussi un script clean.sh, qui detruit tous les verrous.
+```bash
+#!/bin/bash
+#clean.sh
+killall usager.sh
+killall lancement.sh
+killall iss_synchro
+iss_synchro destroy cabines
+iss_synchro destroy paniers
+```
+
+Après l'éxecution du lancement.sh, on obtient: 
+```
+Arrivee de l'usager 283305
+Arrivee de l'usager 283304
+Arrivee de l'usager 283306
+Arrivee de l'usager 283308
+Arrivee de l'usager 283309
+Arrivee de l'usager 283311
+Arrivee de l'usager 283310
+Arrivee de l'usager 283307
+```
+Le script est bloqué. Si on vérifie les deux fichiers, on trouve: 
+nb_cabines: 0, nb_paniers: 2
+
+Nous voyons donc que le problème est que toutes les cabines sont occupées; ceux qui doivent rendre la cabine ne le peuvent pas car il y a des utilisateurs qui veulent prendre la cabine. En conséquence, le programme se fige en attendant qu'une cabine soit liberée.
+
+### Question 4
+Pour résoudre le blocage, j'utilise en total 4 verrous: 2 pour prendre une ressource et 2 pour rendre une ressource.
+
+```bash
+#!/bin/bash
+#lancement.sh
+if [ $# -ne 3 ]; then 
+    echo "Il faut 3 parametres"
+    echo "Usage : $0 <nb_usagers> <nb_paniers> <nb_cabines>"
+    exit 1
+fi
+echo $2 > /tmp/28707365/nb_paniers
+echo $3 > /tmp/28707365/nb_cabines
+
+iss_synchro create prise_nb_cabines
+iss_synchro create prise_nb_paniers
+iss_synchro create remise_nb_cabines
+iss_synchro create remise_nb_paniers
+
+for i in $(seq 0 $1); do
+    ./usager.sh &
+done 
+wait
+```
+
+```bash
+#!/bin/bash
+# usager.sh
+echo "Arrivee de l'usager $$"
+source ./prendre_ressource.sh /tmp/28707365/nb_cabines 
+source ./prendre_ressource.sh /tmp/28707365/nb_paniers
+source ./rendre_ressource.sh /tmp/28707365/nb_cabines
+echo "Usager $$ se baigne"
+sleep 15
+source ./prendre_ressource.sh /tmp/28707365/nb_cabines
+source ./rendre_ressource.sh /tmp/28707365/nb_paniers
+source ./rendre_ressource.sh /tmp/28707365/nb_cabines
+echo "fin de $$"
+```
+
+```bash
+#!/bin/bash
+# prendre_ressource.sh
+# verifer si le nombre de parametres est bon
+if [ $# -ne 1 ]; then
+    echo "Il faut un fichier en parametre pour prendre la ressource" 
+    exit 1
+fi
+# verfier si le fichier existe et on a le droit de le lire
+if [ ! -r $1 ]; then
+    echo "Cannot read file"
+    exit 1
+fi
+
+verrou=$(echo $1 | cut -d "/" -f4 | cut -d "_" -f2)
+verrou="prise_nb_"$verrou
+iss_synchro lock $verrou
+
+# a : nombre de ressources disponibles actuallement dans le fichier
+a=0
+if [ -s $1 ]; then
+    a=$(cat $1)
+fi
+while [[ "$a" -le 0 ]]; do
+    sleep 1
+    a=$(cat $1)
+done 
+echo $((a - 1)) > $1 # a la fin, on met a jour le fichier
+
+iss_synchro unlock $verrou
+```
+
+```bash
+#!/bin/bash
+#rendre_ressource.sh
+# verifer si le nombre de parametres est bon
+if [ $# -ne 1 ]; then
+    echo "Il faut un fichier en parametre pour rendre la ressource" 
+    exit 1
+fi
+# verfier si le fichier existe et on a le droit de le lire
+if [ ! -r $1 ]; then
+    echo "Cannot read file"
+    exit 1
+fi
+
+verrou=$(echo $1 | cut -d "/" -f4 | cut -d "_" -f2)
+verrou="remise_nb_"$verrou
+iss_synchro lock $verrou
+
+a=0 # a : nombre des ressources disponibles dans le fichier 
+if [ -s $1 ]; then
+    a=$(cat $1)
+fi
+echo $((a + 1)) > $1
+
+iss_synchro unlock $verrou
+```
+```bash
+#!/bin/bash
+#clean.sh
+killall usager.sh
+killall lancement.sh
+killall iss_synchro
+iss_synchro destroy prise_nb_cabines
+iss_synchro destroy prise_nb_paniers
+iss_synchro destroy remise_nb_cabines
+iss_synchro destroy remise_nb_paniers
+```
+
+### Question 5
+
+L'execution donne:
+```
+Arrivee de l'usager 312712
+Arrivee de l'usager 312713
+Arrivee de l'usager 312714
+Arrivee de l'usager 312715
+Arrivee de l'usager 312716
+Arrivee de l'usager 312717
+Arrivee de l'usager 312718
+Arrivee de l'usager 312721
+Arrivee de l'usager 312720
+Arrivee de l'usager 312719
+Usager 312713 se baigne
+Usager 312712 se baigne
+Usager 312715 se baigne
+Usager 312717 se baigne
+Usager 312721 se baigne
+```
+En vérifiant les 2 fichiers, on trouve: 
+nb_cabines: 0
+nb_paniers: 0
+
+Le blocage se produit car il n'y a pas de ressource disponible (le nombre de paniers et des cabines est un 0). Cette erreur apparaît car toutes les cabines et tous les paniers sont pris, les utilisateurs qui se baignent ou qui ont fini de se baigner ne peuvent pas prendre de cabine (elles sont tous occupés), mais ils gardent les paniers. Les utilisateurs qui viennent d'arriver occupent les cabines, mais ils n'ont pas de paniers. Donc, toutes les ressources sont utilisées, mais personne ne peut libérer une cabine ou un panier, d'où vient le blocage.
+
+### Question 6
+Si nous changeons l'ordre, le programme ne bloque pas, mais il y a toujours des erreurs dans les 2 fichiers, car nous obtenons 4 cabines et 5 paniers, mais il y en avait 3 et 5.
+Pour mieux comprendre ce qui se passe, j'ai ajouté des affichages supplémentaires.
+
+```
+Arrivee de l'usager 317187
+Arrivee de l'usager 317188
+Arrivee de l'usager 317192
+Arrivee de l'usager 317193
+Arrivee de l'usager 317196
+Arrivee de l'usager 317189
+Arrivee de l'usager 317190
+Arrivee de l'usager 317191
+Arrivee de l'usager 317195
+Arrivee de l'usager 317194
+317193 a pris prise_nb_paniers
+317187 a pris prise_nb_paniers
+317193 a pris prise_nb_cabines
+317188 a pris prise_nb_paniers
+317187 a pris prise_nb_cabines
+317191 a pris prise_nb_paniers
+317188 a pris prise_nb_cabines
+317193 a rendu remise_nb_cabines
+Usager 317193 se baigne
+317190 a pris prise_nb_paniers
+317187 a rendu remise_nb_cabines
+Usager 317187 se baigne
+317191 a pris prise_nb_cabines
+317188 a rendu remise_nb_cabines
+Usager 317188 se baigne
+317190 a pris prise_nb_cabines
+317191 a rendu remise_nb_cabines
+Usager 317191 se baigne
+317190 a rendu remise_nb_cabines
+Usager 317190 se baigne
+317193 a pris prise_nb_cabines
+317187 a pris prise_nb_cabines
+317188 a pris prise_nb_cabines
+317193 a rendu remise_nb_paniers
+317191 a pris prise_nb_cabines
+317187 a rendu remise_nb_paniers
+317188 a rendu remise_nb_paniers
+317193 a rendu remise_nb_cabines
+fin de 317193
+317191 a rendu remise_nb_paniers
+317187 a rendu remise_nb_cabines
+fin de 317187
+317188 a rendu remise_nb_cabines
+fin de 317188
+317191 a rendu remise_nb_cabines
+fin de 317191
+317196 a pris prise_nb_paniers
+317192 a pris prise_nb_paniers
+317195 a pris prise_nb_paniers
+317189 a pris prise_nb_paniers
+317190 a pris prise_nb_cabines
+317196 a pris prise_nb_cabines
+317192 a pris prise_nb_cabines
+317190 a rendu remise_nb_paniers
+317195 a pris prise_nb_cabines
+317196 a rendu remise_nb_cabines
+Usager 317196 se baigne
+317189 a pris prise_nb_cabines
+317192 a rendu remise_nb_cabines
+Usager 317192 se baigne
+317190 a rendu remise_nb_cabines
+fin de 317190
+317195 a rendu remise_nb_cabines
+Usager 317195 se baigne
+317189 a rendu remise_nb_cabines
+Usager 317189 se baigne
+317194 a pris prise_nb_paniers
+317194 a pris prise_nb_cabines
+317194 a rendu remise_nb_cabines
+Usager 317194 se baigne
+317196 a pris prise_nb_cabines
+317192 a pris prise_nb_cabines
+317196 a rendu remise_nb_paniers
+317195 a pris prise_nb_cabines
+317189 a pris prise_nb_cabines
+317192 a rendu remise_nb_paniers
+317195 a rendu remise_nb_paniers
+317196 a rendu remise_nb_cabines
+fin de 317196
+317189 a rendu remise_nb_paniers
+317192 a rendu remise_nb_cabines
+fin de 317192
+317195 a rendu remise_nb_cabines
+fin de 317195
+317189 a rendu remise_nb_cabines
+fin de 317189
+317194 a pris prise_nb_cabines
+317194 a rendu remise_nb_paniers
+317194 a rendu remise_nb_cabines
+fin de 317194
+
+```
+
+Je constate que l'erreur est dans la partie suivante:
+```
+317193 a pris prise_nb_cabines
+317187 a pris prise_nb_cabines
+317188 a pris prise_nb_cabines
+317193 a rendu remise_nb_paniers
+317191 a pris prise_nb_cabines
+```
+Les processus 317193, 317187 et 317188 ont fini la natation et ils souhaitent rendre les ressources. En conséquence, ils prennent chacun une cabine, et après le retour du panier par 317193, un autre utilisateur (processus 317191) entre dans la cabine, même si le 317193 s'y trouve toujours.
+Je ne comprends pas pourquoi, étant donné que normalement la cabine est verrouillée (prise_nb_cabine est bloqué par 317193).

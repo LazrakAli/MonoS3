@@ -1,0 +1,5 @@
+Compilez mon_test.c avec la commande suivante : gcc mon_test.c -o mon_test
+
+
+1.4) non le nom de l'ancien executable reste (mon_test);
+1.5) changer dans le fichier mon test.c le mon_test par executable;

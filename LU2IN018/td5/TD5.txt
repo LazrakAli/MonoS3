@@ -1,0 +1,152 @@
+Execice 1:
+
+inserer_debut
+inserer_fin
+    besoin de conaitre: si pas de copie -> rien
+                        si copie -> dupliquer la donnée
+
+inserer_place
+    dupliquer et comparer
+
+chercher
+    comparer
+
+detruire_liste
+    detruire
+
+afficher_liste
+    afficer
+ecrire_liste
+    ecrire
+
+lire_liste 
+    lire
+
+-----------------------------------------------------------------
+
+fonction de manipulation de liste (generique)
+    #Fonction specifiques qui dépendent de la donnée contenue dans la liste
+
+void* dupliquer(const void *src);
+void copier(const void *src, void* dst);
+int comparer(const void *a, const void *b);
+void detruire(void *dats);
+void afficher(const void* data);
+int ecrire(const void *data,FILE *f);
+void* lire(File *f)
+
+typedef struct _element* PElement;
+typedef struct _element {
+    void *data;
+    PElement suiv;
+}Element;
+
+//-------------------------------------------------
+
+typedef struct_liste *PListe;
+typedef struct _liste{
+    PElement debut, //pointer vers le 1er élément 
+    void **dupliquer(const void * src);
+    void *copier(const void *src, void *dst);
+    int *comparer(const void *a, const void *b);
+    void *detruire(void *dats);
+    void *afficher(const void* data);
+    int *ecrire(const void *data,FILE *f);
+    void **lire(File *f)
+}Liste;
+
+
+Execice 2:
+
+
+void inserer_debut(PListe liste, void *data){
+    PElement elt=(PElement)malloc(sizeof(Element));
+    if(!elt){
+        fprintf(stderr,'Erreur malloc\n');
+        return;
+    }
+    elt->data=liste->dupliquer(data); //appel la fonction dupliquer specifiques pointée par le champ dupliquer;
+    elt->suiv=liste->debut;
+    liste->debut=elt;
+
+}
+
+void inserer_place(Pliste liste,void *data){
+    PElement elt=(PElement)malloc(sizeof(Element));
+    if(!elt){
+        fprintf(stderr,'Erreur malloc\n');
+        return;
+    }
+    PElement tmp=liste->debut;
+    if( tmp==NULL || liste->comparer(data,tmp->data )<0){
+        elt->suiv=liste->debut;
+        liste->debut=elt
+    } else {
+        while( tmp->suivant != NULL ){
+            int comp= liste->comparer(data,tmp->data);
+            if (comp<=0){
+                elt->suiv=tmp->suiv;
+                tmp->suiv=elt;
+                return;
+            }
+            tmp=tmp->suiv;
+        }
+        tmp->suiv=elt;//insertion en queue;
+    }
+}
+
+PElement chercher(PListe liste, void * data){
+    PElement tmp=liste->debut;
+    while(tmp){
+        if (liste->comparer(tmp->data,data)==0)
+            return tmp
+        tmp=tmp->suiv;
+    }
+    return NULL;
+}
+
+void détruire_liste(Pliste liste){
+    PElement tmp=liste->debut;
+    PElement tmp2;
+
+    while (tmp){
+        liste->detuire(tmp->data);
+        tmp2=tmp->suivant;
+        Free(tmp);
+        tmp=tmp2;
+    }
+    free(liste);
+}
+
+void ajouter_liste(PListe liste,int nb_data,..){
+    va_list args;//pointeur vers la liste des parametre
+    va_start (args,nb_data);//initialiszr la position du debut de liste
+    for(i=0;i<nb-data;i++){
+        void * data_va-args(args, void*);//recupere le parametre
+        inserer_fin(liste,data);
+    }
+    va-end(args);//detruit liste
+}
+
+void map(Pliste liste, void *fonction, void *data,void *es,void *optargs){
+    PElement tmp=liste->debut;
+    while(tmp){
+        fonction(tmp->data,optargs);
+        tmp=tmp->suiv;
+    }
+}
+
+void *dupliquer_int(cost void *src){
+    int *src=(int *) src;
+    int *idst=(int *)malloc(sizeof(int));
+    assert(idst);
+    return (void *) idst;
+}
+void detruire_int(void *data){
+    free(data);
+}
+
+void afficher_int(void *data){
+    int v=*(data);
+    printf("%d",v);
+}
